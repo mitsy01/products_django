@@ -15,46 +15,38 @@ def add_products(request):
     form = ProductsForm(request.POST or None)
     if form.is_valid():
         form.save()
-        return redirect("products")
+        return redirect("show_prod")
     return render(request=request, template_name="add_prod.html", context=dict(form=form))
 
 
-def delete_products(request, pk):
-    product = Products.objects.filter(pk=pk).first()
-    if product:
+def delete_products(request, id):
+    try:
+        product = Products.objects.get(id=id)
+    except Products.DoesNotExist:
+        messages.error(request, "Товар не знайдено.")
+        return redirect("show_prod")
+
+    if request.method == 'POST':
         product.delete()
-        return redirect("products")
-    return render(request=request, templates_name="del_prod.html", context=dict(product=product))
+        return redirect("show_prod")
+
+    return render(request, "del_prod.html", {"product": product})
 
 
-# def edit_products(request, pk):
-#     product = Products.objects.filter(pk=pk).first()
-#     if not product:
-#         return redirect("products")
-    
-#     if request.method == "POST":
-#         form = ProductsForm(request.POST, instance=product)
-#         if form.is_valid():
-#             form.save()
-#             return redirect("products")
-#         else:
-#             form = ProductsForm(instance=product)
-    
-#     return render(request=request, template_name="edit_prod.html", context=dict(product=product))
     
 def edit_products(request, id):
     try:
         product = Products.objects.get(id=id)
     except Products.DoesNotExist:
         messages.error(request, "Товар не знайдено.")
-        return redirect('show_prod')
+        return redirect("show_prod")
 
     if request.method == 'POST':
         form = ProductsForm(request.POST, instance=product)
         if form.is_valid():
             form.save()
-            return redirect('show_prod')
+            return redirect("show_prod")
     else:
         form = ProductsForm(instance=product)
 
-    return render(request, 'edit_prod.html', {'form': form, 'product': product})
+    return render(request, "edit_prod.html", {"form": form, "product": product})
