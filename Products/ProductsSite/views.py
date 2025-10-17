@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.http import HttpRequest
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import ListView, FormView
 
 from .models import Products
 from .forms import ProductsForm
@@ -50,3 +52,12 @@ def edit_products(request, id):
         form = ProductsForm(instance=product)
 
     return render(request, "edit_prod.html", {"form": form, "product": product})
+
+    
+class ProductsView(ListView):
+    def get(self, request: HttpRequest):
+        current_page = request.GET.get("page", 1)
+        paginator = Paginator(Products.objects.filter(product=request.product).all(), 2)
+        page_obj = paginator.get_page(current_page)
+        
+        return render(request=request, template_name="prod_view.html", context=dict(page_obj=page_obj))
